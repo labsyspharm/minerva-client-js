@@ -36,12 +36,12 @@ global.navigator = {};
 #### Create repository/import/etc
 
 ```js
-// Utility function to print results and pass along the data
-const printRet = label => data => {
+// Utility function to print results and pass along the response
+const printRet = label => response => {
   console.log('=== ' + label + ' ===');
-  console.log(data);
+  console.log(response);
   console.log();
-  return data;
+  return response;
 };
 
 // Create repository
@@ -53,41 +53,41 @@ const repository = client.createRepository({
 
 // Create an import
 const import_ = repository
-  .then(data => {
+  .then(response => {
     return client.createImport({
       'name': 'Import' + id,
-      'repository_uuid': data['uuid']
+      'repository_uuid': response['data']['uuid']
     });
   })
   .then(printRet('Create Import'));
 
 // List imports in repository
 Promise.all([repository, import_])
-  .then(([data]) => {
-    return client.listImportsInRepository(data['uuid']);
+  .then(([response]) => {
+    return client.listImportsInRepository(response['data']['uuid']);
   })
   .then(printRet('List Imports in Repository'));
 
 // Get the import credentials
 const importCredentials = import_
-  .then(data => {
-    return client.getImportCredentials(data['uuid']);
+  .then(response => {
+    return client.getImportCredentials(response['data']['uuid']);
   })
   .then(printRet('Get Import Credentials'));
 
 // Use the temporary credentials to upload a file
 const importUpload = importCredentials
-  .then(data => {
+  .then(response => {
     const credentials = new AWS.Credentials(
-      data['credentials']['AccessKeyId'],
-      data['credentials']['SecretAccessKey'],
-      data['credentials']['SessionToken']
+      response['credentials']['AccessKeyId'],
+      response['credentials']['SecretAccessKey'],
+      response['credentials']['SessionToken']
     );
     const s3 = new AWS.S3({
       credentials
     });
     const r = /^s3:\/\/([A-z0-9\-]+)\/([A-z0-9\-]+\/)$/;
-    const m = r.exec(data['url'])
+    const m = r.exec(response['url'])
     const bucket = m[1];
     const prefix = m[2];
 
@@ -103,7 +103,7 @@ const importUpload = importCredentials
           Bucket: bucket,
           Key: prefix + '/testproject1/example.rcpnl'
         },
-        (err, data) => err ? reject(err) : resolve(data)
+        (err, response) => err ? reject(err) : resolve(response)
       );
     });
   })
@@ -111,17 +111,17 @@ const importUpload = importCredentials
 
 // Use the temporary credentials to list the import prefix
 const importContents = Promise.all([importCredentials, importUpload])
-  .then(([data]) => {
+  .then(([response]) => {
     const credentials = new AWS.Credentials(
-      data['credentials']['AccessKeyId'],
-      data['credentials']['SecretAccessKey'],
-      data['credentials']['SessionToken']
+      response['credentials']['AccessKeyId'],
+      response['credentials']['SecretAccessKey'],
+      response['credentials']['SessionToken']
     );
     const s3 = new AWS.S3({
       credentials
     });
     const r = /^s3:\/\/([A-z0-9\-]+)\/([A-z0-9\-]+\/)$/;
-    const m = r.exec(data['url'])
+    const m = r.exec(response['url'])
     const bucket = m[1];
     const prefix = m[2];
     return new Promise((resolve, reject) => {
@@ -130,7 +130,7 @@ const importContents = Promise.all([importCredentials, importUpload])
           Bucket: bucket,
           Prefix: prefix
         },
-        (err, data) => err ? reject(err) : resolve(data)
+        (err, response) => err ? reject(err) : resolve(response)
       );
     });
 
@@ -139,20 +139,21 @@ const importContents = Promise.all([importCredentials, importUpload])
 
 // Set the import complete
 const importComplete = Promise.all([import_, importUpload])
-  .then(([data]) => {
-    return client.updateImport(data['uuid'], {'complete': true});
+  .then(([response]) => {
+    return client.updateImport(response['data']['uuid'], {'complete': true});
   })
   .then(printRet('Set Import Complete'));
 
 // Wait for the import to be processed and have a BFU
 const bfu = Promise.all([import_, importComplete])
-  .then(([data]) => {
+  .then(([response]) => {
     return new Promise((resolve, reject) => {
       const wait_for_a_bfu = () => {
-        client.listBFUsInImport(data['uuid'])
-          .then(data => {
-            if (data.length > 0 && data[0]['complete'] === true) {
-              resolve(data[0]);
+        client.listBFUsInImport(response['data']['uuid'])
+          .then(response => {
+            if (response['data'].length > 0
+                && response['data'][0]['complete'] === true) {
+              resolve(response['data'][0]);
             } else {
               setTimeout(wait_for_a_bfu, 30000);
             }
@@ -164,22 +165,22 @@ const bfu = Promise.all([import_, importComplete])
 
 // Get an image associated with the BFU
 const image = bfu
-  .then(data => {
-    return client.listImagesInBFU(data['uuid'])
+  .then(response => {
+    return client.listImagesInBFU(response['data']['uuid'])
   })
-  .then(data => data[0])
+  .then(response => response['data'][0])
   .then(printRet*('Get Image'));
 
 // Get the image credentials
 const imageCredentials = image
-  .then(data => {
-    return client.getImageCredentials(data['uuid']);
+  .then(response => {
+    return client.getImageCredentials(response['data']['uuid']);
   })
   .then(printRet('Get Image Credentials'));
 
 const imageDimensions = image
-  .then(data => {
-    return client.getImageDimensions(data['uuid']);
+  .then(response => {
+    return client.getImageDimensions(response['data']['uuid']);
   })
   .then(printRet('Get Image Dimensions'));
 ```
@@ -195,8 +196,8 @@ const imageDimensions = client.getImageDimensions(imageUuid);
 
 // Render a tile
 const renderedTile = imageDimensions
-  .then(data => {
-    return client.getImageTileRendered(data['image']['uuid'], {
+  .then(response => {
+    return client.getImageTileRendered(response['data']['image']['uuid'], {
       x: 0,
       y: 0,
       z: 0,
