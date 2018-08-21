@@ -59,8 +59,8 @@ client.authenticate('username@example.com', 'password')
 #### Create repository/import/etc
 Create a repository and then an import within it. Get credentials to
 upload to the import and upload an example image. Complete the import
-and wait for a BFU within to be marked as complete. Get details of an
-image within that BFU.
+and wait for a Fileset within to be marked as complete. Get details of an
+image within that Fileset.
 
 ```js
 // Names need to be unique, for this demonstration use a unique ID
@@ -177,32 +177,32 @@ const importComplete = Promise.all([import_, importUpload])
   .then(justData)
   .catch(errExit('Set Import Complete'));
 
-// Wait for the import to be processed and have a BFU
-const bfu = Promise.all([import_, importComplete])
+// Wait for the import to be processed and have a Fileset
+const fileset = Promise.all([import_, importComplete])
   .then(([data]) => {
     return new Promise((resolve, reject) => {
-      const wait_for_a_bfu = () => {
-        client.listBFUsInImport(data['uuid'])
+      const wait_for_a_fileset = () => {
+        client.listFilesetsInImport(data['uuid'])
           .then(justData)
           .then(data => {
             if (data.length > 0
                 && data[0]['complete'] === true) {
               resolve(data[0]);
             } else {
-              setTimeout(wait_for_a_bfu, 30000);
+              setTimeout(wait_for_a_fileset, 30000);
             }
           });
       };
-      wait_for_a_bfu();
+      wait_for_a_fileset();
     });
   })
-  .then(printRet('Wait for BFU'))
-  .catch(errExit('Wait for BFU'));
+  .then(printRet('Wait for Fileset'))
+  .catch(errExit('Wait for Fileset'));
 
-// Get an image associated with the BFU
-const image = bfu
+// Get an image associated with the Fileset
+const image = fileset
   .then(data => {
-    return client.listImagesInBFU(data['uuid'])
+    return client.listImagesInFileset(data['uuid'])
   })
   .then(justData)
   .then(data => data[0])

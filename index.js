@@ -290,19 +290,19 @@ class Client {
     return this.apiFetch('PUT', '/import/' + uuid, null, data);
   }
 
-  // List BFUS in Import
-  listBFUsInImport(uuid) {
-    return this.apiFetch('GET', '/import/' + uuid + '/bfus', null, null);
+  // List Filesets in Import
+  listFilesetsInImport(uuid) {
+    return this.apiFetch('GET', '/import/' + uuid + '/filesets', null, null);
   }
 
-  // List keys in BFU
-  listKeysInBFU(uuid) {
-    return this.apiFetch('GET', '/bfu/' + uuid + '/keys', null, null);
+  // List keys in Fileset
+  listKeysInFileset(uuid) {
+    return this.apiFetch('GET', '/fileset/' + uuid + '/keys', null, null);
   }
 
-  // List images for a BFU
-  listImagesInBFU(uuid) {
-    return this.apiFetch('GET', '/bfu/' + uuid + '/images', null, null);
+  // List images for a Fileset
+  listImagesInFileset(uuid) {
+    return this.apiFetch('GET', '/fileset/' + uuid + '/images', null, null);
   }
 
   // Get Image
