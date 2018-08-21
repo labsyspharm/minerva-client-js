@@ -136,6 +136,7 @@ const importUpload = importCredentials
         (err, data) => err ? reject(err) : resolve(data)
       );
     })
+  })
   .then(printRet('Upload file'))
   .catch(errExit('Upload file'));
 
