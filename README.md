@@ -63,6 +63,9 @@ and wait for a Fileset within to be marked as complete. Get details of an
 image within that Fileset.
 
 ```js
+// S3 requires knowledge of the region being used
+const region = 'us-east-1';
+
 // Names need to be unique, for this demonstration use a unique ID
 // for each run
 const id = 1;
@@ -114,7 +117,8 @@ const importUpload = importCredentials
       data['credentials']['SessionToken']
     );
     const s3 = new AWS.S3({
-      credentials
+      credentials,
+      region
     });
     const r = /^s3:\/\/([A-z0-9\-]+)\/([A-z0-9\-]+\/)$/;
     const m = r.exec(data['url'])

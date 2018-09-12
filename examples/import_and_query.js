@@ -27,6 +27,8 @@ const errExit = label => data => {
   process.exit();
 };
 
+const region = config['Region'];
+
 const client = new Client(
   config['PoolId'],
   config['AppClientId'],
@@ -82,7 +84,8 @@ const importUpload = importCredentials
       response['data']['credentials']['SessionToken']
     );
     const s3 = new AWS.S3({
-      credentials
+      credentials,
+      region
     });
     const r = /^s3:\/\/([A-z0-9\-]+)\/([A-z0-9\-]+\/)$/;
     const m = r.exec(response['data']['url'])
