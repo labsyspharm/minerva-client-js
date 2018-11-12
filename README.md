@@ -278,7 +278,12 @@ const renderedTile = imageDimensions
 
 #### Render an image region
 Get details of an image and then render a given region for the given settings
-to test.png.
+to test.png. `outputHeight`, `outputWidth` and `preferHigherResolution` are
+optional. If both `outputHeight` and `outputWidth` are specified those will be
+used to rescale along those axes without regard for maintaining aspect ratio.
+To ensure they have the same aspect ratio as the requested region it is
+possible to specify just one of the two and the other will be calculated
+appropriately.
 
 ```js
 // Get an image by a known ID
@@ -302,7 +307,8 @@ const renderedRegion = imageDimensions
         { id: 1, color: 234567, min: 0.05, max: 0.2 }
       ],
       outputWidth: 500,
-      outputHeight: 500
+      outputHeight: 500,
+      preferHigherResolution: false
     });
   })
   .then(body => {
