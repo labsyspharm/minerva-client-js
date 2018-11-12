@@ -166,7 +166,7 @@ class Client {
             .map(key => key + '=' + params[key])
             .join('&');
           if (queryParams.length > 0) {
-            url += '?' + queryParams
+            url += '?' + queryParams;
           }
         }
 
@@ -315,7 +315,7 @@ class Client {
     return this.apiFetch('GET', '/image/' + uuid + '/dimensions', null, null);
   }
 
-  // Get rendered tile
+  // Get rendered tile (x and y are tile grids)
   getImageTileRendered(uuid, data) {
     const { x, y, z, t, level, channels } = data;
     const channelPathParams = channels.map(channel => {
@@ -327,6 +327,39 @@ class Client {
       '/image/' + uuid + '/render-tile/' + x + '/' + y + '/' + z + '/' + t
         + '/' + level + '/' + channelPathParams,
       null,
+      null,
+      true
+    );
+  }
+
+  // Get rendered region (x and y are coordinates)
+  getImageRegionRendered(uuid, data) {
+    const { x, y, width, height, z, t, channels, outputWidth,
+            outputHeight, preferHigherResolution } = data;
+    const channelPathParams = channels.map(channel => {
+      return channel['id'] + ',' + channel['color'] + ',' + channel['min']
+        + ',' + channel['max'];
+    }).join('/');
+
+    const params = {};
+
+    if (outputWidth) {
+      params['output-width'] = outputWidth;
+    }
+
+    if (outputHeight) {
+      params['output-height'] = outputHeight;
+    }
+
+    if (preferHigherResolution) {
+      params['prefer-higher-resolution'] = preferHigherResolution.toString();
+    }
+
+    return this.apiFetch(
+      'GET',
+      '/image/' + uuid + '/render-region/' + x + '/' + y + '/' + width + '/'
+        + height + '/' + z + '/' + t + '/' + channelPathParams,
+      params,
       null,
       true
     );
